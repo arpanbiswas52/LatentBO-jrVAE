@@ -32,12 +32,12 @@ E-mail: arpanbiswas52@gmail.com
 """
 
 #@title Installation
-!pip install -q pyroved kornia
-!pip install botorch #version 0.5.1
-!pip install gpytorch #version 1.6.0
-!pip install pyroved
+#!pip install -q pyroved kornia
+#!pip install botorch #version 0.5.1
+#!pip install gpytorch #version 1.6.0
+#!pip install pyroved
 #!pip install atomai==0.5.2 > /dev/null
-!pip install smt
+#!pip install smt
 
 #@title Imports
 from typing import Tuple
@@ -541,6 +541,7 @@ def plot_iteration_results(train_X, train_Y, test_X, y_pred_means, y_pred_vars, 
     decoded_traj1= np.reshape(decoded_traj, (decoded_traj.shape[0]*decoded_traj.shape[1]))
     kl_scale_eval = torch.from_numpy(decoded_traj1)
     n = len(kl_scale_eval)
+    plt.figure()
     plt.plot(np.linspace(1, n, n), kl_scale_eval.detach().numpy(), 'ro-', markersize=2, linewidth=1)
     plt.xlabel("steps")
     plt.ylabel("kl")
@@ -562,6 +563,7 @@ def plot_iteration_results(train_X, train_Y, test_X, y_pred_means, y_pred_vars, 
     decoded_traj1= np.reshape(decoded_traj, (decoded_traj.shape[0]*decoded_traj.shape[1]))
     kl_scale_est = torch.from_numpy(decoded_traj1)
     n = len(kl_scale_est)
+    plt.figure()
     plt.plot(np.linspace(1, n, n), kl_scale_est.detach().numpy(), 'ro-', markersize=2, linewidth=1)
     plt.xlabel("steps")
     plt.ylabel("kl")
@@ -571,6 +573,7 @@ def plot_iteration_results(train_X, train_Y, test_X, y_pred_means, y_pred_vars, 
     plt.show()
 
     #Objective map over 2D latent space
+    plt.figure()
     a = plt.scatter(test_X[:,0], test_X[:,1], c=y_pred_means/pen, cmap='viridis', linewidth=0.2)
     plt.scatter(train_X[:,0], train_X[:,1], marker='o', c='g')
     plt.scatter(z_opt[0, 0], z_opt[0, 1], marker='x', c='r')
@@ -583,6 +586,7 @@ def plot_iteration_results(train_X, train_Y, test_X, y_pred_means, y_pred_vars, 
     plt.show()
     
     #Objective map over 2D latent space
+    plt.figure()
     plt.scatter(test_X[:,0], test_X[:,1], c=y_pred_vars/(pen**2), cmap='viridis', linewidth=0.2)
     plt.xlabel('z1')
     plt.ylabel('z2')
@@ -625,7 +629,7 @@ def latentBO_KL(X, fix_params, data, fix_model, num_rows, num_start, N):
         if (i == 1):
             val_ini = val
         # Check for convergence
-        if ((val) <= 1e-10):  # Stop for negligible expected improvement
+        if ((val) < 0):  # Stop for negligible expected improvement
             print("Model converged due to sufficient learning over search space ")
             break
         else:
@@ -846,6 +850,7 @@ print(decoded_traj_feas.shape)
 print(np.sum(decoded_traj_feas))
 
 #Plot the latent space and check feasible region
+plt.figure()
 plt.imshow(decoded_traj_feas, origin="lower")
 a1= (z_mean_traj[:, -2]- torch.min(z_mean_traj[:, -2])) / (torch.max(z_mean_traj[:, -2]) - torch.min(z_mean_traj[:, -2]))
 a2= (z_mean_traj[:, -1]- torch.min(z_mean_traj[:, -1])) / (torch.max(z_mean_traj[:, -1]) - torch.min(z_mean_traj[:, -1]))
@@ -870,12 +875,12 @@ Create a stack of submimages centered around a portion of the identified lattice
 Add impurities
 """
 
-!pip install -U gdown
+#!pip install -U gdown
 #!gdown "https://drive.google.com/uc?id=1mpecY83LV0sqDbsCzvGgBw4XUhSkiTqZ"
-!gdown "https://drive.google.com/uc?id=14o8Yb7mPyBhPrU14ymlr4j5pVCUYJUpq"
+#gdown https://drive.google.com/uc?id=14o8Yb7mPyBhPrU14ymlr4j5pVCUYJUpq
 
-train_data = np.load("train_data.npy")
-print(train_data.shape)
+train_data = np.load("train_data_imp.npy")
+#print(train_data.shape)
 train_data = torch.from_numpy(train_data)
 print(train_data.shape)
 train_data = train_data.float()
@@ -891,19 +896,19 @@ plt.savefig('TD_graphene.png')
 plt.show()
 
 """#KL optimization using constrained BO over 2D latent space"""
-
+print("Start optimization")
 batch_size=10
 B = 12 #grid size for manifold2D
 #Data dim size
 H = 70
 W = 70
 #Initialize # of discrete class
-discrete_dim = 5 #We dont have any prior knowledge with the actual # of discrete class of defects, we initialize arbitarily and changes which seems best fit with learning (classification) with VAE model
+discrete_dim = 10 #We dont have any prior knowledge with the actual # of discrete class of defects, we initialize arbitarily and changes which seems best fit with learning (classification) with VAE model
 kl_d = 3
 #Initialize for BO
 num_rows =100
-num_start = 4  # Starting samples
-N= 120
+num_start = 20  # Starting samples
+N= 100
 
 #latent parameters for defining KL trajectories
 z1_traj = torch.linspace(torch.min(z_mean_traj[:, -2]), torch.max(z_mean_traj[:, -2]), num_rows)
